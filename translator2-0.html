@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>AI Language Translator</title>
+
+  <style>
+    :root {
+      --bg-top: #e6f2ff;
+      --bg-bottom: #fdfdff;
+      --shell-bg: #ffffff;
+      --shell-border: #c8dcff;
+      --shell-shadow: rgba(15, 76, 129, 0.16);
+      --card-bg: #f5f8ff;
+      --card-border: #d6e3ff;
+      --text-main: #153a6b;
+      --text-muted: #6e86aa;
+      --accent: #2f82ff;
+      --accent-soft: #e0ecff;
+      --accent-green: #1dbf73;
+      --input-bg: #ffffff;
+      --input-border: #c3d6ff;
+      --badge-bg: #edf3ff;
+      --badge-border: #c5d7ff;
+    }
+
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+    body {
+      margin: 0; min-height: 100vh; padding: 16px;
+      background: radial-gradient(circle at 0% 0%, #d7ebff, transparent 55%), radial-gradient(circle at 100% 100%, #fbe7ff, transparent 55%), linear-gradient(to bottom, var(--bg-top), var(--bg-bottom));
+      color: var(--text-main); display: flex; justify-content: center; align-items: flex-start;
+    }
+
+    .shell { width: 100%; max-width: 1180px; background: var(--shell-bg); border-radius: 18px; padding: 18px 18px 20px; border: 1px solid var(--shell-border); box-shadow: 0 20px 50px var(--shell-shadow); }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .title-block { display: flex; gap: 12px; align-items: center; }
+    .logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, #5aa4ff, #2f82ff); display: flex; align-items: center; justify-content: center; color: #f7fbff; font-weight: 700; font-size: 18px; box-shadow: 0 12px 24px rgba(47,130,255,0.35); }
+    .title-text h1 { margin: 0; font-size: 20px; }
+    .title-text p { margin: 4px 0 0; font-size: 13px; color: var(--text-muted); }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .badge { padding: 3px 9px; font-size: 11px; border-radius: 999px; background: var(--badge-bg); border: 1px solid var(--badge-border); color: var(--text-muted); }
+    .header-right { text-align: right; font-size: 12px; color: var(--text-muted); }
+    .grid { display: grid; grid-template-columns: 1.6fr 1.4fr; gap: 14px; }
+    @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); padding: 14px 14px 16px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e2ebff; }
+    .card-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+    .title-icon { width: 24px; height: 24px; border-radius: 8px; background: #e1ecff; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .chip { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: #edf4ff; border: 1px solid #cddfff; color: var(--text-muted); }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .field { flex: 1; min-width: 140px; }
+    .label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); margin-bottom: 4px; }
+    select, textarea { width: 100%; border-radius: 10px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); padding: 8px 10px; font-size: 13px; outline: none; appearance: none; }
+    textarea { min-height: 110px; resize: vertical; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    button { border-radius: 999px; border: 1px solid #c7d9ff; background: #ffffff; padding: 7px 12px; font-size: 12px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.12s ease; }
+    button:hover { background: #f3f6ff; border-color: #b3ccff; }
+    
+    .btn-primary { background: linear-gradient(135deg, #4f8cff, #2467f4); color: #ffffff !important; border: none; box-shadow: 0 8px 22px rgba(36,103,244,0.35); }
+    .btn-primary:hover { background: linear-gradient(135deg, #3b7efd, #1e5cd9); color: #ffffff !important; }
+
+    .output-box { margin-top: 6px; border-radius: 10px; border: 1px dashed #c8d9ff; background: #ffffff; min-height: 90px; padding: 8px 10px; font-size: 13px; white-space: pre-wrap; }
+    .placeholder { color: var(--text-muted); }
+    .status-line { margin-top: 8px; font-size: 12px; color: var(--text-muted); display: flex; gap: 6px; align-items: center; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1ddf5; }
+    .status-dot.live { background: var(--accent-green); box-shadow: 0 0 6px rgba(29,191,115,0.7); }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="header">
+      <div>
+        <div class="title-block">
+          <div class="logo">MT</div>
+          <div class="title-text">
+            <h1>AI Language Translator</h1>
+            <p>High-Accuracy Neural Engine · 100+ Languages</p>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="badge">Text ↔ Text</span>
+          <span class="badge">Speech → Text</span>
+          <span class="badge">Text → Speech</span>
+        </div>
+      </div>
+      <div class="header-right">College Project · Optimized Engine</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="title-icon">📝</div><span>Text Translation</span></div>
+          <span class="chip">Online</span>
+        </div>
+        <div class="row">
+          <div class="field"><span class="label">From language</span><select id="fromLang"></select></div>
+          <div class="field"><span class="label">To language</span><select id="toLang"></select></div>
+          <button id="swapBtn" style="align-self: flex-end;">⇆ Swap</button>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <span class="label">Input text</span>
+          <textarea id="inputText" placeholder="Type your sentence here…"></textarea>
+        </div>
+        <div class="btn-row">
+          <button id="translateBtn" class="btn-primary">⚡ Translate</button>
+          <button id="clearBtn">🧹 Clear</button>
+          <button id="speakInputBtn">🔊 Speak input</button>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <span class="label">Translated text</span>
+          <div id="outputText" class="output-box placeholder">Translation appears here…</div>
+        </div>
+        <div class="btn-row" style="margin-top:6px;">
+          <button id="speakOutputBtn">🔊 Speak translation</button>
+          <button id="copyBtn">📋 Copy</button>
+        </div>
+        <div class="status-line">
+          <div id="statusDot" class="status-dot"></div>
+          <div id="statusText">Ready.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="title-icon">🎤</div><span>Speech Recognition</span></div>
+          <span class="chip">Microphone</span>
+        </div>
+        <div class="row">
+          <div class="field"><span class="label">Speech input language</span><select id="speechInLang"></select></div>
+        </div>
+        <div class="btn-row">
+          <button id="startSTTBtn" class="btn-primary">🎙 Start speech → text</button>
+          <button id="stopSTTBtn">⏹ Stop</button>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <span class="label">Recognised speech</span>
+          <div id="speechText" class="output-box placeholder">Recognised text appears here.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const languages = [
+        {code:"auto",label:"Auto-Detect"},{code:"af",label:"Afrikaans"},{code:"ar",label:"Arabic"},{code:"bn",label:"Bengali"},{code:"zh-CN",label:"Chinese (Simplified)"},{code:"zh-TW",label:"Chinese (Traditional)"},{code:"hr",label:"Croatian"},{code:"cs",label:"Czech"},{code:"da",label:"Danish"},{code:"nl",label:"Dutch"},{code:"en",label:"English"},{code:"et",label:"Estonian"},{code:"fi",label:"Finnish"},{code:"fr",label:"French"},{code:"de",label:"German"},{code:"el",label:"Greek"},{code:"gu",label:"Gujarati"},{code:"iw",label:"Hebrew"},{code:"hi",label:"Hindi"},{code:"hu",label:"Hungarian"},{code:"id",label:"Indonesian"},{code:"ga",label:"Irish"},{code:"it",label:"Italian"},{code:"ja",label:"Japanese"},{code:"kn",label:"Kannada"},{code:"ko",label:"Korean"},{code:"lv",label:"Latvian"},{code:"lt",label:"Lithuanian"},{code:"ms",label:"Malay"},{code:"ml",label:"Malayalam"},{code:"mr",label:"Marathi"},{code:"ne",label:"Nepali"},{code:"no",label:"Norwegian"},{code:"fa",label:"Persian"},{code:"pl",label:"Polish"},{code:"pt",label:"Portuguese"},{code:"pa",label:"Punjabi"},{code:"ro",label:"Romanian"},{code:"ru",label:"Russian"},{code:"sr",label:"Serbian"},{code:"si",label:"Sinhala"},{code:"sk",label:"Slovak"},{code:"sl",label:"Slovenian"},{code:"es",label:"Spanish"},{code:"sw",label:"Swahili"},{code:"sv",label:"Swedish"},{code:"ta",label:"Tamil"},{code:"te",label:"Telugu"},{code:"th",label:"Thai"},{code:"tr",label:"Turkish"},{code:"uk",label:"Ukrainian"},{code:"ur",label:"Urdu"},{code:"vi",label:"Vietnamese"}
+      ];
+
+      const fromLang = document.getElementById("fromLang");
+      const toLang = document.getElementById("toLang");
+      const speechIn = document.getElementById("speechInLang");
+
+      languages.sort((a,b) => a.label.localeCompare(b.label));
+
+      languages.forEach(l => {
+        fromLang.add(new Option(l.label, l.code));
+        toLang.add(new Option(l.label, l.code));
+        if(l.code !== 'auto') speechIn.add(new Option(l.label, l.code));
+      });
+
+      fromLang.value = "en"; toLang.value = "kn"; speechIn.value = "en";
+
+      const inputText = document.getElementById("inputText");
+      const outputText = document.getElementById("outputText");
+      const statusText = document.getElementById("statusText");
+      const statusDot = document.getElementById("statusDot");
+
+      async function performTranslation() {
+        const text = inputText.value.trim();
+        if (!text) return;
+
+        statusDot.classList.add("live");
+        statusText.textContent = "Processing...";
+
+        try {
+          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${fromLang.value}&tl=${toLang.value}&dt=t&ie=UTF-8&oe=UTF-8&q=${encodeURIComponent(text)}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const translatedText = data[0].map(item => item[0]).join("");
+          
+          outputText.textContent = translatedText;
+          outputText.classList.remove("placeholder");
+          statusText.textContent = "Translated.";
+        } catch (e) {
+          statusText.textContent = "Error.";
+        } finally {
+          statusDot.classList.remove("live");
+        }
+      }
+
+      document.getElementById("translateBtn").onclick = performTranslation;
+      document.getElementById("swapBtn").onclick = () => {
+        const t = fromLang.value; 
+        fromLang.value = toLang.value; 
+        toLang.value = (t === 'auto' ? 'en' : t);
+      };
+      document.getElementById("clearBtn").onclick = () => {
+        inputText.value = ""; 
+        outputText.textContent = "Translation appears here…";
+        outputText.classList.add("placeholder");
+      };
+
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (Recognition) {
+        const rec = new Recognition();
+        document.getElementById("startSTTBtn").onclick = () => { rec.lang = speechIn.value; rec.start(); };
+        rec.onresult = (e) => {
+          inputText.value = e.results[0][0].transcript;
+          performTranslation();
+        };
+      }
+
+      document.getElementById("speakOutputBtn").onclick = () => {
+        const u = new SpeechSynthesisUtterance(outputText.textContent);
+        u.lang = toLang.value;
+        window.speechSynthesis.speak(u);
+      };
+
+      document.getElementById("copyBtn").onclick = () => {
+        navigator.clipboard.writeText(outputText.textContent);
+        statusText.textContent = "Copied!";
+      };
+    });
+  </script>
+</body>
+</html>
